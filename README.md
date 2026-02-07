@@ -6,9 +6,9 @@
 
 **CLIP-ART** is an user-friendly R Shiny application designed to streamline the creation of publication-quality data visualizations using the power of **ggplot2**. It empowers researchers to generate, customize, and export complex plots without writing a single line of code.
 
-**Serverless Web-based Application:** [ShinyApps.io](https://gourean.shinyapps.io/clip-art) (Placeholder)
+**Serverless Web-based Application:** [ShinyApps.io](https://gourean.shinyapps.io/clip-art)
 
-**Shinylive Web-based Application:**[Shinylive](https://gourean.github.io/clip-art) (Placeholder)
+**Shinylive Web-based Application:**[Shinylive](https://gourean.github.io/clip-art)
 
 ## Key Features
 
@@ -102,3 +102,4 @@ If you find this tool useful, consider supporting its development:
 ## Development
 
 Developed via **Vibe Coding** with **Gemini 3 Pro**.
+
