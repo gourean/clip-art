@@ -32,7 +32,7 @@ jobs:
       # --- NEW STEP: Install your app's specific packages ---
       - name: Install App Dependencies
         run: |
-          install.packages(c("shiny", "bslib", "ggplot2", "dplyr", "DT", "colourpicker", "ggthemes", "glue", "svglite", "readxl", "haven", "ggdist", "RColorBrewer", "scales", "tidyr"))
+          install.packages(c("shiny", "bslib", "ggplot2", "dplyr", "DT", "colourpicker", "ggthemes", "glue", "svglite", "readxl", "haven", "ggdist", "RColorBrewer", "scales", "tidyr", "munsell", "labeling", "farver", "colorspace", "viridislite", "lifecycle", "gtable", "isoband", "vctrs", "withr", "rlang", "tibble"))
         shell: Rscript {0}
       # ----------------------------------------------------
 
@@ -48,9 +48,4 @@ jobs:
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: "_site"
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    
