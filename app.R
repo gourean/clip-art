@@ -1,11 +1,11 @@
 # ==============================================================================
 # 0. SETUP & PACKAGE INSTALLATION
 # ==============================================================================
-# required_packages <- c("shiny", "bslib", "ggplot2", "dplyr", "DT", "colourpicker", "ggthemes", "glue", "svglite", "readxl", "haven", "ggdist")
-# new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
-# if(length(new_packages)) install.packages(new_packages)
+# For local use: source("setup.R") to install packages.
+# This prevents Shinylive/WASM crashes due to install.packages()
 
 library(shiny)
+
 library(bslib)
 library(ggplot2)
 library(dplyr)
@@ -19,6 +19,8 @@ library(haven)
 library(ggdist)
 library(scales) # Added for explicit dependency
 library(RColorBrewer) # Added for explicit dependency
+library(munsell) # Explicitly needed for Shinylive
+library(labeling) # Explicitly needed for Shinylive
 
 # ==============================================================================
 # 0. SETUP & THEME
