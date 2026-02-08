@@ -1,8 +1,6 @@
 # ==============================================================================
 # 0. SETUP & PACKAGE INSTALLATION
 # ==============================================================================
-# For local use: source("setup.R") to install packages.
-# This prevents Shinylive/WASM crashes due to install.packages()
 
 library(shiny)
 
@@ -25,7 +23,6 @@ library(labeling) # Explicitly needed for Shinylive
 # ==============================================================================
 # 0. SETUP & THEME
 # ==============================================================================
-# "Minty" theme preservation as requested
 my_theme <- bs_theme(bootswatch = "minty", version = 5) %>%
   bs_add_rules("
     .accordion-button { background-color: transparent !important; box-shadow: none !important; }
@@ -72,7 +69,7 @@ ui <- page_sidebar(
     hr(),
     
     
-    # B. Plot Type Selection (Reordered: Common -> Least Common)
+    # B. Plot Type Selection
     selectInput("plot_type", "Select Plot Type", 
                 choices = c(
                   "Scatter Plot" = "point",
@@ -93,7 +90,7 @@ ui <- page_sidebar(
     
     # Footer Note
     div(style = "margin-top: auto; padding-top: 20px; text-align: center; color: #777; font-size: 0.8em; width: 100%; display: block;",
-        "Built by Wong GR. v1.0.0 available on ", 
+        "Built by Wong GR. v1.0.0. Available on ", 
         a(href="https://github.com/gourean/clip-art", "Github", target="_blank")
     )
   ),
@@ -211,7 +208,7 @@ ui <- page_sidebar(
               checkboxInput("remove_gap_y", "Remove Gap Y", value = FALSE)
           ),
           
-          h6("Bar Chart Options"),
+          h6("Chart Options"),
           conditionalPanel(
              condition = "input.plot_type == 'bar'",
              selectInput("bar_pos", "Bar Position", 
@@ -248,8 +245,8 @@ ui <- page_sidebar(
           icon = icon("download"),
           # DO NOT REMOVE THIS DIV: It controls layout and ensures correct syntax (closing parentheses)
           div(style="display: flex; gap: 10px; align-items: flex-end;",
-              numericInput("export_width", "Width (cm)", 15, min = 1, max = 50),
-              numericInput("export_height", "Height (cm)", 10, min = 1, max = 50)
+              numericInput("export_width", "Width (cm)", 20, min = 1, max = 50),
+              numericInput("export_height", "Height (cm)", 13.3, min = 1, max = 50)
           ),
           numericInput("export_dpi", "DPI", 300, min = 72, max = 600),
           
@@ -293,9 +290,11 @@ ui <- page_sidebar(
              h5("Edit Dataset", style="margin-bottom: 0;"),
              span(" (Double-click cells to edit)", style="font-size: 0.9em; color: #666;")
           ),
-          div(class = "d-flex gap-2",
+          div(class = "d-flex gap-2 align-items-center",
+            div(style = "margin-right: 15px;", 
+                actionButton("new_data_btn", "New", icon = icon("file"), class = "btn-outline-secondary btn-sm")
+            ),
             div(class = "btn-group btn-group-sm", role = "group",
-              actionButton("new_data_btn", "New", icon = icon("file"), class = "btn-outline-secondary"),
               actionButton("add_row_btn", "Row", icon = icon("plus"), class = "btn-secondary"),
               actionButton("add_col_btn", "Col", icon = icon("plus"), class = "btn-secondary")
             ),
@@ -772,7 +771,7 @@ server <- function(input, output, session) {
       # Stroke & Limits (Reset based on plot type default if needed, or just standard 0.5/black)
       # Resetting to standard defaults
       # Need to match the logic in the auto-update observer
-      val <- if(input$plot_type == "point") 0.0 else 0.2
+      val <- if(input$plot_type == "point") 0.0 else 0.5
       updateNumericInput(session, "stroke_size", value = val)
       updateColourInput(session, "stroke_color", value = "black")
       
@@ -791,8 +790,8 @@ server <- function(input, output, session) {
       updateCheckboxInput(session, "facet_scales", value = FALSE)
       
       # Exports
-      updateNumericInput(session, "export_width", value = 15)
-      updateNumericInput(session, "export_height", value = 10)
+      updateNumericInput(session, "export_width", value = 20)
+      updateNumericInput(session, "export_height", value = 13.3)
 
       updateNumericInput(session, "export_dpi", value = 300)
       
@@ -970,7 +969,7 @@ server <- function(input, output, session) {
     # For points, stroke is in pts. 0.5 matches axis.
     # For others (bar/box/line), linewidth is in mm. ~0.2 mm matches axis.
     # We default points to 0.0 (no border) for cleanliness, but others to 0.2 to match axis visual.
-    val <- if(input$plot_type == "point") 0.0 else 0.2
+    val <- if(input$plot_type == "point") 0.0 else 0.5
     updateNumericInput(session, "stroke_size", value = val)
   })
 
@@ -1171,7 +1170,7 @@ server <- function(input, output, session) {
          if(input$dot_layout == "hist") s_dir <- "up"
          else s_dir <- "center"
       }
-      p <- p + do.call(geom_dotplot, c(geom_params, list(binaxis = "y", stackdir = s_dir)))
+      p <- p + do.call(geom_dotplot, c(geom_params, list(binaxis = "x", stackdir = s_dir)))
     }
     else if(ptype == "rain") {
       # FAST Raincloud: Slab (Density) + Boxplot + Jitter (Rain)
@@ -1251,7 +1250,7 @@ server <- function(input, output, session) {
     } else if(ptype == "density") {
       "Density"
     } else if(ptype == "dot") {
-      "Density" # Default geom_dotplot is density
+      "Count" # Default geom_dotplot is density
     } else {
       input$var_y
     }
@@ -1335,8 +1334,14 @@ server <- function(input, output, session) {
        
        # Breaks (Step)
        step_x <- parse_lim(input$x_step)
-       if(!is.na(step_x) && !any(is.na(xlims))) {
-          args_x$breaks <- seq(xlims[1], xlims[2], by = step_x)
+       if(!is.na(step_x)) {
+          if(!any(is.na(xlims))) {
+             # All defined: strict sequence from min to max
+             args_x$breaks <- seq(xlims[1], xlims[2], by = step_x)
+          } else {
+             # Partial/Auto limits: use breaks_width
+             args_x$breaks <- scales::breaks_width(step_x)
+          }
        }
        
        if(length(args_x) > 0) p <- p + do.call(scale_x_continuous, args_x)
@@ -1351,8 +1356,12 @@ server <- function(input, output, session) {
        if(input$remove_gap_y) args_y$expand <- c(0,0)
        
        step_y <- parse_lim(input$y_step)
-       if(!is.na(step_y) && !any(is.na(ylims))) {
-          args_y$breaks <- seq(ylims[1], ylims[2], by = step_y)
+       if(!is.na(step_y)) {
+          if(!any(is.na(ylims))) {
+             args_y$breaks <- seq(ylims[1], ylims[2], by = step_y)
+          } else {
+             args_y$breaks <- scales::breaks_width(step_y)
+          }
        }
        
        if(length(args_y) > 0) p <- p + do.call(scale_y_continuous, args_y)
