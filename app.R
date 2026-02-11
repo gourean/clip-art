@@ -216,8 +216,8 @@ ui <- page_sidebar(
               colourInput("stroke_color", "Stroke Color", value = "black", showColour = "both", palette = "square")
           ),
           div(style="display: flex; gap: 10px;",
-              checkboxInput("remove_gap_x", "Remove Gap X", value = TRUE),
-              checkboxInput("remove_gap_y", "Remove Gap Y", value = FALSE)
+              checkboxInput("remove_gap_x", "Remove Gap X", value = FALSE),
+              checkboxInput("remove_gap_y", "Remove Gap Y", value = TRUE)
           ),
           
           h6("Chart Options"),
@@ -1440,6 +1440,7 @@ server <- function(input, output, session) {
     }
   )
 }
+
 
 
 shinyApp(ui, server)
